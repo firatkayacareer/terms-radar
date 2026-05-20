@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms Radar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Terms Radar</h1>
+
+        <p>
+            Web sitelerindeki değişiklikleri takip et.
+        </p>
+
+       <input
+    type="text"
+    id="urlInput"
+    placeholder="https://example.com"
+    autocomplete="off"
+/>
+<textarea
+    id="keywordInput"
+    placeholder="Takip edilecek kelimeler (örn: iade, veri paylaşımı)"
+    style="
+        width:100%;
+        margin-top:10px;
+        border-radius:8px;
+        padding:10px;
+        min-height:80px;
+        box-sizing:border-box;
+    "
+></textarea>
+      <button id="checkButton" type="button">
+    Kontrol Et
+</button>
+
+        <div id="result"></div>
+        <h2>Takip Listesi</h2>
+
+<div id="savedSites"></div>
+    </div>
+
+    <script src="app.js?v=2"></script>
+</body>
+</html>
+</body>
+<script>
+document
+    .getElementById("checkButton")
+    .addEventListener("click", checkSite);
+</script>
+<script>
+document
+    .getElementById("urlInput")
+    .addEventListener("keypress", function(event){
+
+        if(event.key === "Enter"){
+            checkSite();
+        }
+    });
+</script>
