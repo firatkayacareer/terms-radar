@@ -1,7 +1,7 @@
 const fs = require("fs");
 require("dotenv").config();
 const express = require("express");
-const sqlite3 = require("sqlite3").verbose();
+const Database = require("better-sqlite3");
 const axios = require("axios");
 const TELEGRAM_TOKEN =
     process.env.TELEGRAM_TOKEN;
@@ -12,29 +12,29 @@ const cheerio = require("cheerio");
 const cors = require("cors");
 
 const app = express();
-const db = new sqlite3.Database("monitoring.db");
-db.serialize(() => {
+const db = new Database("monitoring.db");
 
-    db.run(`
-        CREATE TABLE IF NOT EXISTS monitored_sites (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            url TEXT UNIQUE,
-            text TEXT,
-            checkedAt TEXT
-        )
-    `);
 
-        db.run(`
-        CREATE TABLE IF NOT EXISTS change_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            url TEXT,
-            oldText TEXT,
-            newText TEXT,
-            changedAt TEXT
-        )
-    `);
+    db.prepare(`
+    CREATE TABLE IF NOT EXISTS monitored_sites (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        url TEXT UNIQUE,
+        text TEXT,
+        checkedAt TEXT
+    )
+`).run();
 
-});
+ db.prepare(`
+    CREATE TABLE IF NOT EXISTS change_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        url TEXT,
+        oldText TEXT,
+        newText TEXT,
+        changedAt TEXT
+    )
+`).run();
+
+
 let isChecking = false;
 
 app.use(cors());
@@ -101,6 +101,35 @@ async function checkWebsite(url, keywords = []) {
 }
 app.post("/check", async (req, res) => {
 
+    app.get("/sites", (req, res) => {
+
+    try {
+
+        const rows = db
+            .prepare(
+                "SELECT * FROM monitored_sites"
+            )
+            .all();
+
+        const result = rows.map(site => {
+
+            return {
+                url: site.url,
+                checkedAt: site.checkedAt,
+                changed: false
+            };
+        });
+
+        res.json(result);
+
+    } catch (err) {
+
+        res.status(500).json({
+            error: err.message
+        });
+    }
+
+});
     try {
 
         const { url, keywords } = req.body;
@@ -176,18 +205,18 @@ ${newPreview}
     checkedAt: new Date().toLocaleString("tr-TR")
 };
 
-db.run(
+db.prepare(
     `
     INSERT OR REPLACE INTO monitored_sites
     (url, text, checkedAt)
     VALUES (?, ?, ?)
-    `,
-    [
-        url,
-        text,
-        new Date().toLocaleString("tr-TR")
-    ]
+    `
+).run(
+    url,
+    text,
+    new Date().toLocaleString("tr-TR")
 );
+
         fs.writeFileSync("data.json", JSON.stringify(savedData, null, 2));
 
 res.json({
@@ -207,57 +236,22 @@ res.json({
     }
 });
 
-app.get("/sites", (req, res) => {
 
-    db.all(
-    "SELECT * FROM monitored_sites",
-    [],
-    (err, rows) => {
-
-        if (err) {
-
-            return res.status(500).json({
-                error: err.message
-            });
-        }
-
-        const result = rows.map(site => {
-
-            return {
-                url: site.url,
-                checkedAt: site.checkedAt,
-                changed: false
-            };
-        });
-
-        res.json(result);
-    }
-);
-});
 
 app.delete("/delete-site", (req, res) => {
 const { url } = req.body;
 
-db.run(
+db.prepare(
     `
     DELETE FROM monitored_sites
     WHERE url = ?
-    `,
-    [url],
-    function (err) {
+    `
+).run(url);
 
-        if (err) {
+res.json({
+    success: true
+});
 
-            return res.status(500).json({
-                error: err.message
-            });
-        }
-
-        res.json({
-            success: true
-        });
-    }
-);
 });
 setInterval(async () => {
 
@@ -276,60 +270,52 @@ setInterval(async () => {
         "⏰ Otomatik kontrol çalıştı"
     );
 
-    db.all(
-        "SELECT * FROM monitored_sites",
-        [],
-        async (err, rows) => {
+const rows = db
+    .prepare(
+        "SELECT * FROM monitored_sites"
+    )
+    .all();
 
-            if (err) {
+for (const site of rows) {
 
-                console.log(err.message);
+    const url = site.url;
 
-                isChecking = false;
+    try {
 
-                return;
-            }
+        console.log(
+            "Kontrol ediliyor:",
+            url
+        );
 
-            for (const site of rows) {
+        const result =
+            await checkWebsite(url);
 
-                const url = site.url;
+        const newText = result.text;
 
-                try {
+        const oldText = site.text;
 
-                    console.log(
-                        "Kontrol ediliyor:",
-                        url
-                    );
+        const differenceSize = Math.abs(
+            newText.length - oldText.length
+        );
 
-                    const result =
-                        await checkWebsite(url);
+        if (
+            oldText &&
+            oldText !== newText &&
+            differenceSize > 20
+        ) {
 
-                    const newText = result.text;
+            console.log(
+                "🚨 Değişiklik bulundu:",
+                url
+            );
 
-                    const oldText = site.text;
-const differenceSize = Math.abs(
-    newText.length - oldText.length
-);
+            const oldPreview =
+                oldText.substring(0, 200);
 
-if (
-    oldText &&
-    oldText !== newText &&
-    differenceSize > 20
-)
-                   {
+            const newPreview =
+                newText.substring(0, 200);
 
-                        console.log(
-                            "🚨 Değişiklik bulundu:",
-                            url
-                        );
-
-                        const oldPreview =
-                            oldText.substring(0, 200);
-
-                        const newPreview =
-                            newText.substring(0, 200);
-
-                        const difference = `
+            const difference = `
 ESKİ:
 
 ${oldPreview}
@@ -338,13 +324,14 @@ YENİ:
 
 ${newPreview}
 `;
-await axios.post(
-    `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,
-    {
-        chat_id:
-            TELEGRAM_CHAT_ID,
 
-        text:
+            await axios.post(
+                `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`,
+                {
+                    chat_id:
+                        TELEGRAM_CHAT_ID,
+
+                    text:
 `🚨 Terms Radar Alert
 
 Site:
@@ -356,53 +343,53 @@ ${difference}
 
 ⏰ ${new Date().toLocaleString("tr-TR")}
 `
-    },
-    {
-        timeout: 5000
-    }
-);
-db.run(
-    `
-    INSERT INTO change_history
-    (url, oldText, newText, changedAt)
-    VALUES (?, ?, ?, ?)
-    `,
-    [
-        url,
-        oldText,
-        newText,
-        new Date().toLocaleString("tr-TR")
-    ]
-);
-                        db.run(
-                            `
-                            UPDATE monitored_sites
-                            SET text = ?, checkedAt = ?
-                            WHERE url = ?
-                            `,
-                            [
-                                newText,
-                                new Date().toLocaleString("tr-TR"),
-                                url
-                            ]
-                        );
-                    }
-
-                } catch (error) {
-
-                    console.log(
-                        "Scheduler Hatası:"
-                    );
-
-                    console.log(error.message);
+                },
+                {
+                    timeout: 5000
                 }
-            }
+            );
 
-            isChecking = false;
+            db.prepare(
+                `
+                INSERT INTO change_history
+                (url, oldText, newText, changedAt)
+                VALUES (?, ?, ?, ?)
+                `
+            ).run(
+                url,
+                oldText,
+                newText,
+                new Date().toLocaleString("tr-TR")
+            );
+
+            db.prepare(
+                `
+                UPDATE monitored_sites
+                SET text = ?, checkedAt = ?
+                WHERE url = ?
+                `
+            ).run(
+                newText,
+                new Date().toLocaleString("tr-TR"),
+                url
+            );
         }
-    );
 
-}, 60000);
+    } catch (error) {
+
+        console.log(
+            "Scheduler Hatası:"
+        );
+
+        console.log(error.message);
+    }
+}
+
+isChecking = false;
+        },
+  60000  );
+
+ 
 app.listen(3000, () => {
     console.log("Server çalışıyor: http://localhost:3000");
     
