@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-const TOKEN = "8745019889:AAHwRY4gRSBihffp2k5NjkBpmS5O38CpoiA";
+const TOKEN = "AAETlnMGp23VtDBVUkPbhjrlL7lAa3as6v0";
 
 const CHAT_ID = "5014444499";
 
