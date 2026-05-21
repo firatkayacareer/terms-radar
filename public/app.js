@@ -168,43 +168,56 @@ async function loadSites() {
 
     data.forEach(site => {
 
-      savedSites.innerHTML += `
-    <div style="
-        background:#334155;
-        padding:10px;
-        border-radius:8px;
-        margin-top:10px;
+    savedSites.innerHTML += `
 
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-    ">
+        <div class="site-card">
 
-        <div>
-            <strong class="site-url">
-    ${site.url}
-</strong>
-            <br>
-            ${site.changed ? "🚨 Değişiklik Var" : "✅ Değişiklik Yok"}
-            <br>
-🕒 ${site.checkedAt}
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:flex-start;
+                gap:15px;
+            ">
+
+                <div>
+
+                    <div class="site-url">
+                        ${site.url}
+                    </div>
+
+                    <div class="site-meta">
+                        🕒 Son kontrol:
+                        ${site.checkedAt}
+                    </div>
+
+                    <div class="site-status">
+                        ${site.changed
+                            ? "🚨 Change Detected"
+                            : "✅ Monitoring Active"}
+                    </div>
+
+                </div>
+
+                <button
+                    onclick="deleteSite('${site.url}')"
+                    style="
+                        width:auto;
+                        min-height:auto;
+                        padding:10px 14px;
+                        background:#ef4444;
+                        border:none;
+                        border-radius:10px;
+                    "
+                >
+                    🗑️
+                </button>
+
+            </div>
+
         </div>
 
-        <button
-            onclick="deleteSite('${site.url}')"
-            style="
-                width:auto;
-                min-height:auto;
-                padding:8px 12px;
-                background:#ef4444;
-            "
-        >
-            🗑️
-        </button>
-
-    </div>
-`;
-    });
+    `;
+});
 }
 loadSites();
 async function deleteSite(url){
