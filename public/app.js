@@ -1,235 +1,487 @@
+let currentLanguage = "tr";
 async function checkSite() {
 
-    const url = document.getElementById("urlInput").value;
-    const keywords =
-    document.getElementById("keywordInput")
-    .value
-    .split(",");
-    const result = document.getElementById("result");
+    const url =
+        document.getElementById("urlInput").value;
 
-    result.innerHTML = "Kontrol ediliyor...";
+    const keywords =
+        document.getElementById("keywordInput")
+        .value
+        .split(",");
+
+    const result =
+        document.getElementById("result");
+
+    result.innerHTML = `
+        <div class="result-item">
+            ⏳ Monitoring başlatılıyor...
+        </div>
+    `;
 
     try {
 
         const response = await fetch("/check", {
+
             method: "POST",
+
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type":
+                    "application/json"
             },
+
             body: JSON.stringify({
-    url,
-    keywords
-})
+                url,
+                keywords
+            })
         });
 
-        const data = await response.json();
+        const data =
+            await response.json();
 
-        console.log("GELEN DATA:", data);
+        console.log(
+            "GELEN DATA:",
+            data
+        );
 
-        
-        const degisim = data.changed;
-        const difference = data.difference;
-        const keywordMatches = data.keywordMatches;
-        const keywordContexts = data.keywordContexts || [];
-        
+        const degisim =
+            data.changed;
+
+        const difference =
+            data.difference;
+
+        const keywordMatches =
+            data.keywordMatches;
+
+        const keywordContexts =
+            data.keywordContexts || [];
 
         result.innerHTML = `
-            <h3>Başarılı ✅</h3>
 
-            <p>
-                <strong>Değişiklik Durumu:</strong>
-                ${degisim ? "🚨 Değişiklik Var" : "✅ Değişiklik Yok"}
-            </p>
+            <h3>
+    ${translations[currentLanguage].statusTitle}
+</h3>
 
-   <p>
-    <strong>🕒 Son Kontrol:</strong>
-    ${new Date().toLocaleString("tr-TR")}
-</p>
+            <div class="result-item">
 
-<p>
-    <strong>🔎 Bulunan Kelimeler:</strong>
-    ${
-        keywordMatches.length > 0
-            ? keywordMatches.join(", ")
-            : "Bulunamadı"
-    }
-</p>
-${keywordContexts.length > 0 ? `
-    <div style="
-        margin-top:15px;
-        background:#111827;
-        padding:12px;
-        border-radius:10px;
-    ">
+                <span class="result-label">
+                    Sistem:
+                </span>
 
-        <strong>🧠 Kelime Bağlamı</strong>
+                ${
+                    degisim
+                    ? "🚨 Değişiklik Algılandı"
+                    : "✅ Monitoring Active"
+                }
 
-        ${keywordContexts.map(item => `
-            <div style="
-                margin-top:10px;
-                background:#1e293b;
-                padding:10px;
-                border-radius:8px;
-            ">
-                <strong style="color:#60a5fa;">
-                    ${item.keyword}
-                </strong>
-
-                <p style="
-                    margin-top:5px;
-                    color:#e2e8f0;
-                ">
-                    ...${item.context}...
-                </p>
             </div>
-        `).join("")}
 
-    </div>
-` : ""}
-    ${
-        keywordMatches.length > 0
-            ? keywordMatches.join(", ")
-            : "Bulunamadı"
-    }
-</p>
-    ${new Date().toLocaleString("tr-TR")}
+            <div class="result-item">
 
+                <span class="result-label">
+                    🕒 Son Kontrol:
+                </span>
 
-`;
+                ${new Date().toLocaleString("tr-TR")}
 
-if (degisim) {
+            </div>
 
-    result.innerHTML += `
-        <div style="
-            margin-top:15px;
-            background:#0f172a;
-            border-radius:12px;
-            padding:15px;
-        ">
+            <div class="result-item">
 
-            <h4 style="
-                margin-top:0;
-                color:#f8fafc;
-            ">
-                🚨 Değişiklik Detayı
-            </h4>
+                <span class="result-label">
+                    🔎 Bulunan Kelimeler:
+                </span>
 
-            <div style="
-                background:#3f1d1d;
-                color:#fecaca;
-                padding:10px;
-                border-radius:8px;
-                margin-top:10px;
-                white-space:pre-wrap;
-            ">
-                🔴 Önceki İçerik
+                ${
+                    keywordMatches.length > 0
+                        ? keywordMatches.join(", ")
+                        : "Bulunamadı"
+                }
+
+            </div>
+
+            ${keywordContexts.length > 0 ? `
+
+                <div style="
+                    margin-top:20px;
+                    background:#111827;
+                    padding:16px;
+                    border-radius:12px;
+                ">
+
+                    <strong style="
+                        color:white;
+                    ">
+                        🧠 Kelime Bağlamı
+                    </strong>
+
+                    ${keywordContexts.map(item => `
+
+                        <div style="
+                            margin-top:12px;
+                            background:#1e293b;
+                            padding:12px;
+                            border-radius:10px;
+                        ">
+
+                            <strong style="
+                                color:#60a5fa;
+                            ">
+                                ${item.keyword}
+                            </strong>
+
+                            <p style="
+                                margin-top:8px;
+                                color:#e2e8f0;
+                                line-height:1.6;
+                            ">
+                                ...${item.context}...
+                            </p>
+
+                        </div>
+
+                    `).join("")}
+
+                </div>
+
+            ` : ""}
+
+        `;
+
+        if (degisim) {
+
+            result.innerHTML += `
+
+                <div style="
+                    margin-top:20px;
+                    background:#0f172a;
+                    border-radius:14px;
+                    padding:18px;
+                ">
+
+                    <h4 style="
+                        margin-top:0;
+                        color:#f8fafc;
+                    ">
+                        🚨 Değişiklik Detayı
+                    </h4>
+
+                    <div style="
+                        background:#3f1d1d;
+                        color:#fecaca;
+                        padding:12px;
+                        border-radius:10px;
+                        margin-top:12px;
+                        white-space:pre-wrap;
+                    ">
+
+🔴 Önceki İçerik
 
 ${difference.split("YENİ:")[0]}
-            </div>
 
-            <div style="
-                background:#052e16;
-                color:#bbf7d0;
-                padding:10px;
-                border-radius:8px;
-                margin-top:10px;
-                white-space:pre-wrap;
-            ">
-                🟢 Yeni İçerik
+                    </div>
+
+                    <div style="
+                        background:#052e16;
+                        color:#bbf7d0;
+                        padding:12px;
+                        border-radius:10px;
+                        margin-top:12px;
+                        white-space:pre-wrap;
+                    ">
+
+🟢 Yeni İçerik
 
 ${difference.split("YENİ:")[1]}
-            </div>
 
-        </div>
-    `;
-}
-    } catch (error) {
+                    </div>
 
-        console.error(error);
+                </div>
 
-       result.innerHTML = `
-    <p style="color:#f87171;">
-        ⚠️ Site erişimi engelledi veya hata verdi.
-    </p>
-`;
+            `;
+        }
+
         loadSites();
-    }
+
+    } catch (error)
+ {
+
+    console.error("GERCEK HATA:", error);
+
+    result.innerHTML =
+        `
+        <div class="result-item">
+            ❌ ${error}
+        </div>
+        `;
+}
 }
 
 async function loadSites() {
 
-    const savedSites = document.getElementById("savedSites");
+    const savedSites =
+        document.getElementById("savedSites");
 
-    const response = await fetch("/sites");
+    const response =
+        await fetch("/sites");
 
-    const data = await response.json();
+    const data =
+        await response.json();
 
     savedSites.innerHTML = "";
 
     data.forEach(site => {
 
-    savedSites.innerHTML += `
+        savedSites.innerHTML += `
 
-        <div class="site-card">
+            <div class="site-card">
 
-            <div style="
-                display:flex;
-                justify-content:space-between;
-                align-items:flex-start;
-                gap:15px;
-            ">
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:flex-start;
+                    gap:15px;
+                ">
 
-                <div>
+                    <div>
 
-                    <div class="site-url">
-                        ${site.url}
+                        <div class="site-url">
+                            ${site.url}
+                        </div>
+
+                        <div class="site-meta">
+                            🕒 Son kontrol:
+                            ${site.checkedAt}
+                        </div>
+
+                        <div class="site-status">
+                            ${
+                                site.changed
+                                ? "🚨 Change Detected"
+                                : "✅ Monitoring Active"
+                            }
+                        </div>
+
                     </div>
 
-                    <div class="site-meta">
-                        🕒 Son kontrol:
-                        ${site.checkedAt}
-                    </div>
-
-                    <div class="site-status">
-                        ${site.changed
-                            ? "🚨 Change Detected"
-                            : "✅ Monitoring Active"}
-                    </div>
+                    <button
+                        onclick="deleteSite('${site.url}')"
+                        style="
+                            width:auto;
+                            min-height:auto;
+                            padding:10px 14px;
+                            background:#ef4444;
+                            border:none;
+                            border-radius:10px;
+                        "
+                    >
+                        🗑️
+                    </button>
 
                 </div>
 
-                <button
-                    onclick="deleteSite('${site.url}')"
-                    style="
-                        width:auto;
-                        min-height:auto;
-                        padding:10px 14px;
-                        background:#ef4444;
-                        border:none;
-                        border-radius:10px;
-                    "
-                >
-                    🗑️
-                </button>
-
             </div>
 
-        </div>
-
-    `;
-});
+        `;
+    });
 }
+
 loadSites();
-async function deleteSite(url){
+
+async function deleteSite(url) {
 
     await fetch("/delete-site", {
-        method:"DELETE",
-        headers:{
-            "Content-Type":"application/json"
+
+        method: "DELETE",
+
+        headers: {
+            "Content-Type":
+                "application/json"
         },
-       
-        body: JSON.stringify({ url })
+
+        body: JSON.stringify({
+            url
+        })
     });
 
     loadSites();
 }
+
+
+function setLanguage(lang) {
+    currentLanguage = lang;
+
+    const heroTitle =
+        document.getElementById("heroTitle");
+
+    const subtitle =
+        document.getElementById("subtitle");
+
+    const liveIndicator =
+        document.getElementById("liveIndicator");
+
+    const useCasesTitle =
+        document.getElementById("useCasesTitle");
+
+    const case1 =
+        document.getElementById("case1");
+
+    const case2 =
+        document.getElementById("case2");
+
+    const case3 =
+        document.getElementById("case3");
+
+    const case4 =
+        document.getElementById("case4");
+
+    const case5 =
+        document.getElementById("case5");
+
+    const checkButton =
+        document.getElementById("checkButton");
+const keywordInput =
+    document.getElementById("keywordInput");
+
+const statusTitle =
+    document.getElementById("statusTitle");
+
+const statusText =
+    document.getElementById("statusText");
+    const translations = {
+
+        tr: {
+
+            hero:
+                `Kritik web sitesi değişikliklerini
+                anında yakalayın.`,
+
+            subtitle:
+                `Fiyat değişimleri, kullanım şartları
+                ve kampanya güncellemelerini takip edin.`,
+
+            live:
+    `<span class="live-dot"></span>
+    Monitoring Sistemi Aktif`,
+
+            useCases:
+                `Örnek Kullanım Alanları`,
+
+            case1:
+                `💰 Fiyat değişimlerini takip edin`,
+
+            case2:
+                `📄 İade politikası güncellemelerini görün`,
+
+            case3:
+                `⚖️ Kullanım şartlarındaki değişiklikleri yakalayın`,
+
+            case4:
+                `🏷️ Kampanya ve indirim değişikliklerini izleyin`,
+
+            case5:
+                `📈 Rakip web sitelerini otomatik takip edin`,
+
+            button:
+                `Takibi Başlat`
+
+                ,
+
+keywordPlaceholder:
+    `Takip edilecek kelimeler
+    (örn: iade, veri paylaşımı)`,
+
+statusTitle:
+    `Monitoring Durumu`,
+
+statusText:
+    `Takip başlatılmaya hazır`
+        },
+
+        en: {
+
+            hero:
+                `Monitor critical website changes
+                before they surprise you.`,
+
+            subtitle:
+                `Track pricing updates,
+                terms of service changes
+                and campaign updates automatically.`,
+
+            live:
+                `<span class="live-dot"></span>
+                Monitoring Engine Active`,
+
+            useCases:
+                `Example Use Cases`,
+
+            case1:
+                `💰 Track pricing changes`,
+
+            case2:
+                `📄 Monitor refund policy updates`,
+
+            case3:
+                `⚖️ Detect terms of service changes`,
+
+            case4:
+                `🏷️ Follow campaign and discount updates`,
+
+            case5:
+                `📈 Automatically monitor competitor websites`,
+
+            button:
+                `Start Monitoring`
+                ,
+
+keywordPlaceholder:
+    `Keywords to monitor
+    (ex: refund, privacy)`,
+
+statusTitle:
+    `Monitoring Status`,
+
+statusText:
+    `Ready to start monitoring`
+        }
+    };
+
+    heroTitle.innerHTML =
+        translations[lang].hero;
+
+    subtitle.innerHTML =
+        translations[lang].subtitle;
+
+    liveIndicator.innerHTML =
+        translations[lang].live;
+
+    useCasesTitle.innerHTML =
+        translations[lang].useCases;
+
+    case1.innerHTML =
+        translations[lang].case1;
+
+    case2.innerHTML =
+        translations[lang].case2;
+
+    case3.innerHTML =
+        translations[lang].case3;
+
+    case4.innerHTML =
+        translations[lang].case4;
+
+    case5.innerHTML =
+        translations[lang].case5;
+
+    checkButton.innerHTML =
+        translations[lang].button;
+        keywordInput.placeholder =
+    translations[lang].keywordPlaceholder;
+
+statusTitle.innerHTML =
+    translations[lang].statusTitle;
+
+statusText.innerHTML =
+    translations[lang].statusText;
+}
+setLanguage("tr");

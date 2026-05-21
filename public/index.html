@@ -9,19 +9,40 @@
 <body>
 
     <div class="container">
-       <h1 class="hero-title">
-    Monitor Website Changes
-    Before They Surprise You
+        <div class="language-switch">
+
+    <button onclick="setLanguage('tr')">
+        TR
+    </button>
+
+    <button onclick="setLanguage('en')">
+        EN
+    </button>
+
+</div>
+   <h1
+    class="hero-title"
+    id="heroTitle"
+>
+    Kritik web sitesi değişikliklerini
+    anında yakalayın.
 </h1>
-<div class="live-indicator">
+<div
+    class="live-indicator"
+    id="liveIndicator"
+>
 
     <span class="live-dot"></span>
 
     Monitoring Engine Active
 
 </div>
-<p class="subtitle">
-    Web sitelerindeki kritik değişiklikleri anında yakalayın.
+<p
+    class="subtitle"
+    id="subtitle"
+>
+    Fiyat değişimleri, kullanım şartları
+    ve kampanya güncellemelerini takip edin.
 </p>
 
 <p class="description">
@@ -29,14 +50,30 @@
 </p>
 <div class="use-cases">
 
-    <h3>Örnek Kullanım Alanları</h3>
+    <h3 id="useCasesTitle">
+    Örnek Kullanım Alanları
+</h3>
 
     <ul>
-        <li>💰 Fiyat değişimlerini takip edin</li>
-        <li>📄 İade politikası güncellemelerini görün</li>
-        <li>⚖️ Kullanım şartlarındaki değişiklikleri yakalayın</li>
-        <li>🏷️ Kampanya ve indirim değişikliklerini izleyin</li>
-        <li>📈 Rakip web sitelerini otomatik takip edin</li>
+        <li id="case1">
+    💰 Fiyat değişimlerini takip edin
+</li>
+
+<li id="case2">
+    📄 İade politikası güncellemelerini görün
+</li>
+
+<li id="case3">
+    ⚖️ Kullanım şartlarındaki değişiklikleri yakalayın
+</li>
+
+<li id="case4">
+    🏷️ Kampanya ve indirim değişikliklerini izleyin
+</li>
+
+<li id="case5">
+    📈 Rakip web sitelerini otomatik takip edin
+</li>
     </ul>
 
 </div>
@@ -48,30 +85,31 @@
 />
 <textarea
     id="keywordInput"
-    placeholder="Takip edilecek kelimeler (örn: iade, veri paylaşımı)"
-    style="
-        width:100%;
-        margin-top:10px;
-        border-radius:8px;
-        padding:10px;
-        min-height:80px;
-        box-sizing:border-box;
-    "
+    placeholder="Takip edilecek kelimeler"
 ></textarea>
-      <button id="checkButton" type="button">
+  <button
+    id="checkButton"
+    type="button"
+>
     Takibi Başlat
 </button>
 
-     <div id="result" class="result-box">
+<div id="result" class="result-box">
 
-    <h3>Monitoring Status</h3>
+    <h3 id="statusTitle">
+        Monitoring Durumu
+    </h3>
 
     <div class="result-item">
+
         <span class="result-label">
             Sistem:
         </span>
 
-        Takip başlatılmaya hazır
+        <span id="statusText">
+            Takip başlatılmaya hazır
+        </span>
+
     </div>
 
 </div>
@@ -80,15 +118,12 @@
     </div>
 
     <script src="app.js?v=2"></script>
-</body>
-</html>
-</body>
-<script>
+    <script>
+
 document
     .getElementById("checkButton")
     .addEventListener("click", checkSite);
-</script>
-<script>
+
 document
     .getElementById("urlInput")
     .addEventListener("keypress", function(event){
@@ -97,4 +132,7 @@ document
             checkSite();
         }
     });
+
 </script>
+</body>
+</html>
