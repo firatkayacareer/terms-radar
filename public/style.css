@@ -1,12 +1,18 @@
-body{
+body {
+
     font-family: Arial, sans-serif;
-    background:#0f172a;
-    color:white;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-    margin:0;
+
+    background: #0f172a;
+
+    color: white;
+
+    margin: 0;
+
+    min-height: 100vh;
+
+    padding: 40px 0;
+
+    overflow-x: hidden;
 }
 
 .container {
@@ -371,4 +377,21 @@ button:hover {
 
     box-shadow:
         0 0 12px #22c55e;
+}
+
+.hero-title {
+
+    font-size: clamp(34px, 6vw, 52px);
+
+    line-height: 1.1;
+
+    font-weight: 800;
+
+    margin-bottom: 18px;
+
+    letter-spacing: -1.5px;
+
+    color: white;
+
+    max-width: 760px;
 }
